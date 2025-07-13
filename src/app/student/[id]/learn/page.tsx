@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const studentName = student?.username || 'Student';
   
   return {
-    title: `Learn DSA`,
-    description: `Curated DSA learning resources for ${studentName}.`,
+    title: `Learn`,
+    description: `Curated learning resources for ${studentName}.`,
   }
 }
 

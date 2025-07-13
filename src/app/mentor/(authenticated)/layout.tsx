@@ -3,7 +3,7 @@
 import { Logo } from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User, Home, Users, BarChart3, PanelLeft } from 'lucide-react';
+import { LogOut, Settings, User, Home, Users, BarChart3, PanelLeft, Bug } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
@@ -19,6 +19,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { ReportBugDialog } from '@/components/report-bug-dialog';
 
 export default function MentorAuthenticatedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -67,6 +68,14 @@ export default function MentorAuthenticatedLayout({ children }: { children: Reac
                         <Settings />
                         Settings
                     </SidebarMenuButton>
+                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <ReportBugDialog>
+                        <SidebarMenuButton>
+                            <Bug />
+                            Report Bug
+                        </SidebarMenuButton>
+                    </ReportBugDialog>
                  </SidebarMenuItem>
                  <SidebarMenuItem>
                      <SidebarMenuButton asChild>

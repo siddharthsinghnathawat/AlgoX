@@ -13,8 +13,9 @@ import {
     addStudent as addLocalStudent,
     removeStudent as removeLocalStudent,
     addProblem as addLocalProblem,
-    setProblemSolved as setLocalProblemSolved,
-    findMentorByUsername
+    setAssignedProblemSolved as setLocalAssignedProblemSolved,
+    findMentorByUsername,
+    updateStudentProgress as localUpdateStudentProgress
 } from '@/lib/data';
 
 export async function getStreakTipsAction() {
@@ -54,6 +55,12 @@ export async function removeStudent(studentId: string): Promise<boolean> {
     return removeLocalStudent(studentId);
 }
 
+// This action is for SDE sheets and Problem Sets where problems aren't formally "assigned"
+export async function updateStudentProgress(studentId: string, solved: boolean): Promise<boolean> {
+    return localUpdateStudentProgress(studentId, solved);
+}
+
+
 // Problem Actions
 export async function getAllProblems(): Promise<Problem[]> {
     return JSON.parse(JSON.stringify(problems)); // Return a deep copy
@@ -75,8 +82,9 @@ export async function addProblem(problemData: Omit<Problem, 'id' | 'created_at'>
     return { ...newProblem };
 }
 
+// This action is specifically for the "Assigned Problems" list.
 export async function setProblemSolvedStatus(studentId: string, problemId: string, isSolved: boolean): Promise<boolean> {
-    return setLocalProblemSolved(studentId, problemId, isSolved);
+    return setLocalAssignedProblemSolved(studentId, problemId, isSolved);
 }
 
 

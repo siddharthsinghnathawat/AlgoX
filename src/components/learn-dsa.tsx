@@ -21,6 +21,27 @@ const dsaSeries = [
         link: "https://www.youtube.com/playlist?list=PLfqMhTWNBTe137I_EPQd34TsgV6IO55pt",
         imageUrl: "https://placehold.co/600x400.png",
         imageHint: "programming tutorial"
+    },
+    {
+        title: "Chai aur Code Web Development",
+        description: "A comprehensive playlist for full-stack web development, covering JavaScript, React, Node.js, and more by Chai aur Code.",
+        link: "https://www.youtube.com/playlist?list=PLu71Vw8Lgzn0-GT9e_tRR4v2-2igTQla8",
+        imageUrl: "https://placehold.co/600x400.png",
+        imageHint: "web development"
+    },
+    {
+        title: "Apna College's C Language Playlist",
+        description: "Learn the fundamentals of C programming from the ground up with this detailed tutorial series from Apna College.",
+        link: "https://www.youtube.com/watch?v=irqbmMNs2Bo",
+        imageUrl: "https://placehold.co/600x400.png",
+        imageHint: "c programming"
+    },
+    {
+        title: "CodeWithHarry's Python Playlist",
+        description: "A complete Python tutorial playlist by CodeWithHarry, perfect for beginners and experienced programmers alike.",
+        link: "https://www.youtube.com/watch?v=7wnove7K-ZQ&list=PLu0W_9lII9agwh1XjRt242xIpHhPT2llg",
+        imageUrl: "https://placehold.co/600x400.png",
+        imageHint: "python code"
     }
 ]
 
@@ -28,8 +49,8 @@ export function LearnDsa() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Learn Data Structures & Algorithms</h1>
-        <p className="text-muted-foreground">Curated playlists from top educators to help you master DSA.</p>
+        <h1 className="text-2xl font-bold">Learn to Code</h1>
+        <p className="text-muted-foreground">Curated playlists from top educators to help you master your skills.</p>
       </div>
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {dsaSeries.map((series) => (

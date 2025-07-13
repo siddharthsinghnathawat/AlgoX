@@ -2,7 +2,7 @@
 'use client'
 import { Logo } from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, Home, BarChart3, ListChecks, BookOpenCheck, Terminal, BookOpen } from 'lucide-react';
+import { LogOut, Settings, Home, BarChart3, ListChecks, BookOpenCheck, Terminal, BookOpen, LayoutGrid, Map, ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, usePathname, useParams } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -116,6 +116,14 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.endsWith('/problem-set')}>
+                <Link href={`/student/${params.id}/problem-set`}>
+                  <LayoutGrid />
+                  Problem Set
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.endsWith('/playground')}>
                 <Link href={`/student/${params.id}/playground`}>
                   <Terminal />
@@ -128,6 +136,22 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
                 <Link href={`/student/${params.id}/sde-sheet`}>
                   <BookOpenCheck />
                   SDE Sheet
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.endsWith('/preparation')}>
+                <Link href={`/student/${params.id}/preparation`}>
+                  <ClipboardCheck />
+                  Preparation
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.endsWith('/roadmap')}>
+                <Link href={`/student/${params.id}/roadmap`}>
+                  <Map />
+                  Roadmap
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -88,10 +88,7 @@ export default function MentorLoginPage() {
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm text-neutral-400 flex justify-center">
-            Don't have an account?&nbsp;
-            <Link href="/mentor/signup" className="font-semibold text-white hover:underline">
-                Sign Up
-            </Link>
+             Mentor access is by invitation only.
         </CardFooter>
       </Card>
     </main>

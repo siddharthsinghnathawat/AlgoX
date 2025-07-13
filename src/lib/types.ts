@@ -81,3 +81,27 @@ export type StudentProblem = {
   problem: Problem;
   isSolved: boolean;
 };
+
+export type ProblemSetItem = {
+    id: string;
+    title: string;
+    link: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    topic: string;
+    companies: string[];
+};
+
+export type AssessmentProblem = {
+    id: string;
+    title: string;
+    link: string;
+}
+
+export type Assessment = {
+    id: string;
+    company: string;
+    type: string;
+    logoUrl: string;
+    timeLimitMinutes: number;
+    problems: AssessmentProblem[];
+};

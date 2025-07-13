@@ -152,7 +152,7 @@ const calculateStreak = (solvedData: SolvedData[]): number => {
     if (solvedData.length === 0) return 0;
 
     const today = new Date();
-    const sortedDates = solvedData.map(d => new Date(d.date)).sort((a,b) => b.getTime() - a.getTime());
+    const sortedDates = solvedData.map(d => parseISO(d.date)).sort((a,b) => b.getTime() - a.getTime());
 
     let streak = 0;
     let lastDate = today;
@@ -161,6 +161,7 @@ const calculateStreak = (solvedData: SolvedData[]): number => {
     const lastSolveDiff = differenceInCalendarDays(today, sortedDates[0]);
     if (lastSolveDiff > 1) return 0; // No activity today or yesterday, streak is 0.
     
+    // Account for if the last solve was today or yesterday
     streak = 1;
     lastDate = sortedDates[0];
 
@@ -178,12 +179,56 @@ const calculateStreak = (solvedData: SolvedData[]): number => {
     return streak;
 };
 
-export function setProblemSolved(studentId: string, problemId: string, isSolved: boolean): boolean {
+// Central function to update all student stats.
+function updateStudentStats(student: Student, solved: boolean) {
+    if (solved) {
+        student.totalSolved++;
+    } else {
+        student.totalSolved = Math.max(0, student.totalSolved - 1);
+    }
+    
+    // Update solvedData for today
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    let todayData = student.solvedData.find(d => d.date === todayStr);
+
+    if (solved) {
+        if (todayData) {
+            todayData.count++;
+        } else {
+            student.solvedData.push({ date: todayStr, count: 1 });
+        }
+    } else {
+        if (todayData) {
+            todayData.count--;
+            if (todayData.count <= 0) {
+                // Remove the entry if count is 0 or less
+                student.solvedData = student.solvedData.filter(d => d.date !== todayStr);
+            }
+        }
+    }
+
+    // Sort data by date before calculating streak
+    student.solvedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    // Recalculate streak
+    student.streak = calculateStreak(student.solvedData);
+}
+
+// This function is for SDE sheets and Problem Sets, where we just need to update stats, not track specific problems.
+export function updateStudentProgress(studentId: string, solved: boolean): boolean {
+    const student = findStudentById(studentId);
+    if (!student) return false;
+
+    updateStudentStats(student, solved);
+    return true;
+}
+
+
+export function setAssignedProblemSolved(studentId: string, problemId: string, isSolved: boolean): boolean {
     const student = findStudentById(studentId);
     if (!student) return false;
 
     const linkExists = studentProblems.some(sp => sp.student_id === studentId && sp.problem_id === problemId);
-    let dataChanged = false;
 
     if (isSolved && !linkExists) {
         studentProblems.push({
@@ -192,42 +237,10 @@ export function setProblemSolved(studentId: string, problemId: string, isSolved:
             problem_id: problemId,
             created_at: new Date().toISOString()
         });
-        dataChanged = true;
+        updateStudentStats(student, true);
     } else if (!isSolved && linkExists) {
         studentProblems = studentProblems.filter(sp => !(sp.student_id === studentId && sp.problem_id === problemId));
-        dataChanged = true;
-    }
-    
-    // If the solved status actually changed, update stats
-    if (dataChanged) {
-        // Recalculate total solved
-        student.totalSolved = studentProblems.filter(sp => sp.student_id === studentId).length;
-
-        // Update solvedData for today
-        const todayStr = format(new Date(), 'yyyy-MM-dd');
-        let todayData = student.solvedData.find(d => d.date === todayStr);
-
-        if (isSolved) {
-            if (todayData) {
-                todayData.count++;
-            } else {
-                student.solvedData.push({ date: todayStr, count: 1 });
-            }
-        } else {
-            if (todayData) {
-                todayData.count--;
-                if (todayData.count <= 0) {
-                    // Remove the entry if count is 0 or less
-                    student.solvedData = student.solvedData.filter(d => d.date !== todayStr);
-                }
-            }
-        }
-
-        // Sort data by date before calculating streak
-        student.solvedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
-        // Recalculate streak
-        student.streak = calculateStreak(student.solvedData);
+        updateStudentStats(student, false);
     }
 
     return true;

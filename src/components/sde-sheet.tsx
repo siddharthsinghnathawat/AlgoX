@@ -14,6 +14,9 @@ import { sdeSheetTopics, loveBabbarDsaSheetTopics, type SdeTopic } from '@/lib/s
 import type { Student } from '@/lib/types';
 import { BookOpenCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { updateStudentProgress } from '@/app/actions';
+import { useRouter } from 'next/navigation';
+import { useToast } from './ui/use-toast';
 
 type SdeSheetProps = {
   student: Student;
@@ -69,26 +72,76 @@ function SheetAccordion({ sheet, solvedProblems, onToggle }: { sheet: SdeTopic[]
 export function SdeSheet({ student }: SdeSheetProps) {
   const [striverSolved, setStriverSolved] = React.useState<Set<string>>(new Set());
   const [babbarSolved, setBabbarSolved] = React.useState<Set<string>>(new Set());
+  const router = useRouter();
+  const { toast } = useToast();
 
-  // In a real app, you would fetch and persist this state from/to your database.
-  // For now, it's just client-side state.
-  const handleToggleStriver = (problemId: string, isSolved: boolean) => {
-    setStriverSolved((prev) => {
-      const newSet = new Set(prev);
-      if (isSolved) newSet.add(problemId);
-      else newSet.delete(problemId);
-      return newSet;
-    });
-  };
+  const STRIVER_STORAGE_KEY = `striver-solved-${student.id}`;
+  const BABBAR_STORAGE_KEY = `babbar-solved-${student.id}`;
 
-  const handleToggleBabbar = (problemId: string, isSolved: boolean) => {
-    setBabbarSolved((prev) => {
-      const newSet = new Set(prev);
-      if (isSolved) newSet.add(problemId);
-      else newSet.delete(problemId);
-      return newSet;
-    });
+  React.useEffect(() => {
+    try {
+        const storedStriver = localStorage.getItem(STRIVER_STORAGE_KEY);
+        if (storedStriver) {
+            setStriverSolved(new Set(JSON.parse(storedStriver)));
+        }
+        const storedBabbar = localStorage.getItem(BABBAR_STORAGE_KEY);
+        if (storedBabbar) {
+            setBabbarSolved(new Set(JSON.parse(storedBabbar)));
+        }
+    } catch (error) {
+        console.error("Failed to load SDE sheet progress from localStorage", error);
+    }
+  }, [student.id, STRIVER_STORAGE_KEY, BABBAR_STORAGE_KEY]);
+
+  const createToggleHandler = (
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+    storageKey: string
+  ) => async (problemId: string, isSolved: boolean) => {
+    
+    // --- Optimistic UI Update for localStorage and component state ---
+    const newSet = new Set(setter(prev => {
+        const current = new Set(prev);
+        if (isSolved) {
+            current.add(problemId);
+        } else {
+            current.delete(problemId);
+        }
+        localStorage.setItem(storageKey, JSON.stringify(Array.from(current)));
+        return current;
+    }));
+
+    // --- Call server action to update global stats ---
+    const success = await updateStudentProgress(student.id, isSolved);
+
+    if (success) {
+        toast({
+            title: "Progress Updated!",
+            description: `Dashboard stats have been updated.`,
+        });
+        router.refresh();
+    } else {
+        // --- Revert UI on failure ---
+        setter(prev => {
+            const reverted = new Set(prev);
+            if (isSolved) {
+                reverted.delete(problemId); // It was added, so we remove it
+            } else {
+                reverted.add(problemId); // It was removed, so we add it back
+            }
+            localStorage.setItem(storageKey, JSON.stringify(Array.from(reverted)));
+            return reverted;
+        });
+
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "Could not update your dashboard stats. Please try again.",
+        });
+    }
   };
+  
+  const handleToggleStriver = createToggleHandler(setStriverSolved, STRIVER_STORAGE_KEY);
+  const handleToggleBabbar = createToggleHandler(setBabbarSolved, BABBAR_STORAGE_KEY);
 
   return (
     <div className="space-y-6">
@@ -97,7 +150,7 @@ export function SdeSheet({ student }: SdeSheetProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><BookOpenCheck className="text-primary"/>Curated Problem Lists</CardTitle>
           <CardDescription>
-            Select a sheet and track your progress. Problems are grouped by topic to guide your learning.
+            Select a sheet and track your progress. Problems are grouped by topic to guide your learning. Your dashboard stats will update as you solve problems.
           </CardDescription>
         </CardHeader>
         <CardContent>
