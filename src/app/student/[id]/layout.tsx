@@ -22,6 +22,9 @@ import { getStudentById } from '@/app/actions';
 import { useEffect, useState } from 'react';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Preloader } from '@/components/preloader';
 
 function LayoutSkeleton() {
     return (
@@ -65,23 +68,38 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
   const params = useParams<{ id: string }>();
   const [student, setStudent] = useState<Student | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user || data.user.id !== params.id) {
+        router.replace("/student/login");
+        return;
+      }
+      setAuthChecked(true);
+    };
+    checkAuth();
+  }, [params.id, router]);
 
   useEffect(() => {
     if (params.id) {
-        getStudentById(params.id).then(data => {
-            setStudent(data);
-            setIsLoading(false);
-        }).catch(() => {
-            setIsLoading(false);
+      getStudentById(params.id)
+        .then((data) => {
+          setStudent(data);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setIsLoading(false);
         });
     } else {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }, [params.id]);
 
-
-  if (isLoading) {
-    return <LayoutSkeleton />; 
+  if (isLoading || !authChecked) {
+    return <Preloader message="Loading..." />;
   }
 
   if (!student) {
