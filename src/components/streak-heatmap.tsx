@@ -13,7 +13,8 @@ type HeatmapProps = {
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const getColor = (count: number) => {
+const getColor = (count: number, isFutureYear: boolean = false) => {
+  if (isFutureYear) return 'bg-muted/30 border border-dashed border-muted-foreground/30';
   if (count === 0) return 'bg-muted/50';
   if (count <= 1) return 'bg-primary/20';
   if (count <= 3) return 'bg-primary/40';
@@ -21,14 +22,17 @@ const getColor = (count: number) => {
   return 'bg-primary';
 };
 
-const DayCell = ({ date, count }: { date: Date, count: number }) => (
+const DayCell = ({ date, count, isFutureYear = false }: { date: Date, count: number, isFutureYear?: boolean }) => (
     <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
-            <div className={cn('h-4 w-4 rounded-sm', getColor(count))} />
+            <div className={cn('h-4 w-4 rounded-sm', getColor(count, isFutureYear))} />
         </TooltipTrigger>
         <TooltipContent>
             <p className="text-sm">
-                {count} contribution{count !== 1 ? 's' : ''} on {format(date, 'MMM d, yyyy')}
+                {isFutureYear 
+                  ? `Future date: ${format(date, 'MMM d, yyyy')}`
+                  : `${count} contribution${count !== 1 ? 's' : ''} on ${format(date, 'MMM d, yyyy')}`
+                }
             </p>
         </TooltipContent>
     </Tooltip>
@@ -59,6 +63,9 @@ export function StreakHeatmap({ data, year }: HeatmapProps) {
     return <div className="h-[128px] w-full animate-pulse rounded-md bg-muted" />;
   }
 
+  const currentYear = new Date().getFullYear();
+  const isFutureYear = year > currentYear;
+
   return (
     <TooltipProvider>
         <div className="flex justify-start overflow-x-auto pb-2 gap-3">
@@ -77,7 +84,7 @@ export function StreakHeatmap({ data, year }: HeatmapProps) {
                             {monthDates.map((date) => {
                                 const dateString = format(date, 'yyyy-MM-dd');
                                 const count = dataMap.get(dateString) || 0;
-                                return <DayCell key={dateString} date={date} count={count} />;
+                                return <DayCell key={dateString} date={date} count={count} isFutureYear={isFutureYear} />;
                             })}
                         </div>
                     </div>

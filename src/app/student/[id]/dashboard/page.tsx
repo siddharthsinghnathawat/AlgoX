@@ -2,13 +2,15 @@ import { StudentDashboard } from '@/components/student-dashboard';
 import { getStudentById } from '@/app/actions';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { getStudentProfile } from '@/lib/firebase-data';
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const student = await getStudentById(params.id);
+  const { id } = await params;
+  const student = await getStudentProfile(id);
   const studentName = student?.realName || 'Student';
   
   return {
@@ -17,8 +19,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DashboardPage({ params }: { params: { id:string } }) {
-    const student = await getStudentById(params.id);
+export default async function DashboardPage({ params }: { params: Promise<{ id:string }> }) {
+    const { id } = await params;
+    let student = await getStudentProfile(id);
+
+    // If no student found in Firestore, try local data as fallback
+    if (!student) {
+      student = await getStudentById(id);
+    }
 
     if (!student) {
         notFound();

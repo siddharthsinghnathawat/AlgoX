@@ -10,32 +10,79 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Logo } from '@/components/logo';
-import { supabase } from '@/lib/supabase';
+import { auth } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createStudentProfile } from '@/lib/firebase-data';
 
 export default function StudentSignupPage() {
-  const [email, setEmail] = useState('');
-  const [realName, setRealName] = useState('');
-  const [error, setError] = useState('');
+  const [codername, setCodername] = useState("");
+  const [realName, setRealName] = useState("");
+  const [leetcodeId, setLeetcodeId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    
+    // Validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+    if (!codername.trim()) {
+      setError("Codername is required.");
+      return;
+    }
+    if (!realName.trim()) {
+      setError("Real name is required.");
+      return;
+    }
+    if (!leetcodeId.trim()) {
+      setError("LeetCode ID is required.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) {
-        setError(error.message);
+      // Create Firebase auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      console.log('Firebase user created successfully:', user);
+
+      // Create student profile in Firestore
+      const student = await createStudentProfile({
+        uid: user.uid,
+        codername,
+        realName,
+        email,
+        leetcodeId,
+        avatarUrl: `https://placehold.co/100x100.png`,
+      });
+
+      console.log('Student profile created:', student);
+
+      toast({
+        title: "Account Created!",
+        description: "Your account has been created successfully. Welcome!",
+      });
+
+      // Redirect to the student's dashboard
+      router.push(`/student/${user.uid}/dashboard`);
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setError("This email is already registered. Please use a different email or login.");
+      } else if (error.code === 'auth/weak-password') {
+        setError("Password is too weak. Please choose a stronger password.");
       } else {
-        toast({
-          title: 'Check your email!',
-          description: 'A magic link has been sent to your email address. Use it to complete your signup.',
-        });
+        setError(error.message || "An error occurred during sign up. Please try again.");
       }
-    } catch (e) {
-      setError('An error occurred during sign up. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -49,23 +96,51 @@ export default function StudentSignupPage() {
             <Logo height={64} width={64} />
           </div>
           <CardTitle className="text-3xl font-bold">Create Student Account</CardTitle>
-          <CardDescription className="text-neutral-400">Join AlgoX and start your coding journey. Enter your email to receive a signup link.</CardDescription>
+          <CardDescription className="text-neutral-400">Join AlgoX and start your coding journey.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="realName">Full Name (optional)</Label>
+              <Label htmlFor="codername">Codername *</Label>
+              <Input
+                id="codername"
+                placeholder="e.g., code_master_123"
+                required
+                value={codername}
+                onChange={(e) => setCodername(e.target.value)}
+                disabled={isLoading}
+                className="bg-neutral-900 border-neutral-700"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="realName">Real Name *</Label>
               <Input
                 id="realName"
                 placeholder="e.g., Ada Lovelace"
+                required
                 value={realName}
                 onChange={(e) => setRealName(e.target.value)}
                 disabled={isLoading}
                 className="bg-neutral-900 border-neutral-700"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="leetcodeId">LeetCode ID *</Label>
+              <Input
+                id="leetcodeId"
+                placeholder="e.g., ada_lovelace"
+                required
+                value={leetcodeId}
+                onChange={(e) => setLeetcodeId(e.target.value)}
+                disabled={isLoading}
+                className="bg-neutral-900 border-neutral-700"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -77,9 +152,24 @@ export default function StudentSignupPage() {
                 className="bg-neutral-900 border-neutral-700"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password *</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Create a secure password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                className="bg-neutral-900 border-neutral-700"
+              />
+            </div>
+
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             <Button type="submit" className="w-full bg-white text-black hover:bg-neutral-200" disabled={isLoading}>
-              {isLoading ? 'Sending...' : 'Send Magic Link'}
+              {isLoading ? "Creating Account..." : "Sign Up"}
             </Button>
           </form>
         </CardContent>

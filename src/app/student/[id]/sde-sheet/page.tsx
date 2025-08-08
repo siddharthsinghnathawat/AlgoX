@@ -1,29 +1,31 @@
 
 import { SdeSheet } from '@/components/sde-sheet';
 import { getStudentById } from '@/app/actions';
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const student = await getStudentById(params.id);
-  const studentName = student?.realName || 'Student';
-  
+  const { id } = await params;
+  const student = await getStudentById(id);
+  const studentName = student?.username || 'Student';
+
   return {
-    title: `DSA Sheets for ${studentName}`,
-    description: `Striver's & Love Babbar's DSA Sheet problem tracker for ${studentName}.`,
+    title: `${studentName} - SDE Sheet`,
+    description: 'SDE Interview Preparation Sheet.',
   }
 }
 
-export default async function SdeSheetPage({ params }: { params: { id:string } }) {
-    const student = await getStudentById(params.id);
+export default async function SdeSheetPage({ params }: { params: Promise<{ id:string }> }) {
+    const { id } = await params;
+    const student = await getStudentById(id);
 
     if (!student) {
         notFound();
     }
-    
+
     return <SdeSheet student={student} />;
 }

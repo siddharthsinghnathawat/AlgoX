@@ -23,7 +23,8 @@ import { useEffect, useState } from 'react';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { Preloader } from '@/components/preloader';
 
 function LayoutSkeleton() {
@@ -72,15 +73,23 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user || data.user.id !== params.id) {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
         router.replace("/student/login");
         return;
       }
+      
+      // If user is authenticated but trying to access a different user's dashboard,
+      // redirect them to their own dashboard
+      if (user.uid !== params.id) {
+        router.replace(`/student/${user.uid}/dashboard`);
+        return;
+      }
+      
       setAuthChecked(true);
-    };
-    checkAuth();
+    });
+
+    return () => unsubscribe();
   }, [params.id, router]);
 
   useEffect(() => {
@@ -98,8 +107,17 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     }
   }, [params.id]);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/student/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   if (isLoading || !authChecked) {
-    return <Preloader message="Loading..." />;
+    return <Preloader isLoading={true} />;
   }
 
   if (!student) {
@@ -201,11 +219,11 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
                  </SidebarMenuItem>
                  <SidebarMenuItem>
                      <SidebarMenuButton asChild>
-                        <Link href="/">
+                        <button onClick={handleLogout} className="w-full text-left">
                             <LogOut />
                             Logout
-                        </Link>
-                    </SidebarMenuButton>
+                        </button>
+                     </SidebarMenuButton>
                  </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton>

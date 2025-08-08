@@ -24,7 +24,7 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   if (error) {
-    return <div className="flex min-h-screen items-center justify-center text-red-500">{error}</div>;
+    return <div className="flex min-h-screen items-center justify-center text-red-500">"Invalid password and email"</div>;
   }
   return <Preloader message="Logging you in..." />;
 }

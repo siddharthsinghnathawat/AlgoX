@@ -26,6 +26,8 @@ export let students: Student[] = [
         realName: 'Alice Smith',
         password: 'password123',
         avatarUrl: 'https://placehold.co/100x100.png',
+        email: 'alice@example.com',
+        leetcodeId: 'alice_smith',
         totalSolved: 88,
         streak: 12,
         badges: 3,
@@ -38,6 +40,8 @@ export let students: Student[] = [
         realName: 'Bob Johnson',
         password: 'password123',
         avatarUrl: 'https://placehold.co/100x100.png',
+        email: 'bob@example.com',
+        leetcodeId: 'bob_johnson',
         totalSolved: 152,
         streak: 29,
         badges: 5,
@@ -50,6 +54,8 @@ export let students: Student[] = [
         realName: 'Charlie Brown',
         password: 'password123',
         avatarUrl: 'https://placehold.co/100x100.png',
+        email: 'charlie@example.com',
+        leetcodeId: 'charlie_brown',
         totalSolved: 45,
         streak: 3,
         badges: 1,
@@ -111,6 +117,10 @@ export function findStudentById(id: string): Student | undefined {
 
 export function findStudentByUsername(username: string): Student | undefined {
     return students.find(s => s.username === username);
+}
+
+export function findStudentByEmail(email: string): Student | undefined {
+    return students.find(s => s.email === email);
 }
 
 export function findMentorByUsername(username: string): Mentor | undefined {

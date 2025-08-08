@@ -10,12 +10,13 @@ export const metadata: Metadata = {
 }
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function RankingPage({ params }: Props) {
+    const { id } = await params;
     const allStudents = await getAllStudents();
-    const currentStudent = await getStudentById(params.id);
+    const currentStudent = await getStudentById(id);
 
     if (!currentStudent) {
         notFound();

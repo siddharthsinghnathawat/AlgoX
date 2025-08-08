@@ -1,25 +1,27 @@
 
 import { StudentProblemsList } from '@/components/student-problems-list';
 import { getStudentById, getStudentProblems } from '@/app/actions';
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const student = await getStudentById(params.id);
-  const studentName = student?.realName || 'Student';
-  
+  const { id } = await params;
+  const student = await getStudentById(id);
+  const studentName = student?.username || 'Student';
+
   return {
-    title: `Problems for ${studentName}`,
-    description: `Assigned problems for ${studentName}.`,
+    title: `${studentName} - Problems`,
+    description: 'All assigned problems.',
   }
 }
 
-export default async function ProblemsPage({ params }: { params: { id:string } }) {
-    const student = await getStudentById(params.id);
+export default async function ProblemsPage({ params }: { params: Promise<{ id:string }> }) {
+    const { id } = await params;
+    const student = await getStudentById(id);
 
     if (!student) {
         notFound();

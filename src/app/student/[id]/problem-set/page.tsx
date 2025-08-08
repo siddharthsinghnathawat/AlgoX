@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   description: 'A curated list of over 500 problems to practice.',
 };
 
-export default function ProblemSetPage({ params }: { params: { id: string } }) {
+export default async function ProblemSetPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const problems = getProblemSet();
-    return <ProblemSet problems={problems} studentId={params.id} />;
+    return <ProblemSet problems={problems} studentId={id} />;
 }

@@ -1,29 +1,31 @@
 
 import { LearnDsa } from '@/components/learn-dsa';
 import { getStudentById } from '@/app/actions';
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const student = await getStudentById(params.id);
+  const { id } = await params;
+  const student = await getStudentById(id);
   const studentName = student?.username || 'Student';
-  
+
   return {
-    title: `Learn`,
-    description: `Curated learning resources for ${studentName}.`,
+    title: `${studentName} - Learn DSA`,
+    description: 'Learn Data Structures and Algorithms.',
   }
 }
 
-export default async function LearnPage({ params }: { params: { id:string } }) {
-    const student = await getStudentById(params.id);
+export default async function LearnPage({ params }: { params: Promise<{ id:string }> }) {
+    const { id } = await params;
+    const student = await getStudentById(id);
 
     if (!student) {
         notFound();
     }
-    
+
     return <LearnDsa />;
 }

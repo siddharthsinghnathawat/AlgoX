@@ -171,16 +171,17 @@ export function StudentDashboard({ student }: StudentDashboardProps) {
                     variant="outline" 
                     size="icon" 
                     onClick={() => setDisplayYear(displayYear - 1)}
-                    disabled={displayYear <= currentYear - 2}
+                    disabled={displayYear <= currentYear - 10}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     <span className="sr-only">Previous Year</span>
                   </Button>
+                  <span className="text-sm font-medium min-w-[60px] text-center">{displayYear}</span>
                   <Button 
                     variant="outline" 
                     size="icon" 
                     onClick={() => setDisplayYear(displayYear + 1)}
-                    disabled={displayYear >= currentYear}
+                    disabled={displayYear >= currentYear + 5}
                   >
                     <ChevronRight className="h-4 w-4" />
                     <span className="sr-only">Next Year</span>

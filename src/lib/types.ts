@@ -42,6 +42,8 @@ export type Student = {
     realName: string;
     password: string;
     avatarUrl: string | null;
+    leetcodeId?: string;
+    email?: string;
     totalSolved: number;
     streak: number;
     badges: number;
